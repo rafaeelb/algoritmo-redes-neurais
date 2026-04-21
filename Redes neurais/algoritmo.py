@@ -6,39 +6,59 @@ import numpy as np
 import re
 
 # ----------------------------
-# 1. BASE DE DADOS (REDUZIDA)
+# 1. BASE DE DADOS MAIOR
 # ----------------------------
 frases = [
     # positivos
-    "eu gostei muito disso", "isso é incrível", "muito bom",
-    "excelente trabalho", "eu adorei", "maravilhoso",
-    "fantástico", "ótimo", "bom trabalho", "nota 10",
+    "eu gostei muito disso", "isso é incrível", "estou feliz", "muito bom",
+    "excelente trabalho", "eu adorei", "maravilhoso", "fantástico",
+    "amei demais", "foi muito bom", "sensacional", "legal demais",
+    "muito bom mesmo", "perfeito", "ótimo", "bom trabalho",
+    "gostei bastante", "ficou incrível", "isso foi ótimo",
+    "curti muito", "show de bola", "top demais", "muito bom isso",
+    "foi excelente", "nota 10", "recomendo muito", "adorei isso",
 
     # negativos
-    "eu odiei isso", "isso é ruim", "muito ruim",
-    "péssimo", "horrível", "não gostei", "terrível",
-    "decepcionante", "experiência ruim", "lixo",
+    "eu odiei isso", "isso é ruim", "estou triste", "muito ruim",
+    "péssimo", "horrível", "detestei", "muito decepcionante",
+    "não gostei", "terrível", "foi ruim", "odiei muito",
+    "muito ruim mesmo", "não vale a pena", "pior coisa",
+    "decepcionante", "não recomendo", "experiência ruim",
+    "isso foi horrível", "não gostei disso", "muito fraco",
+    "bem ruim", "não curti", "péssima experiência", "lixo",
+    # negativos com palavrão
+    "isso é uma merda",
+    "que lixo isso",
+    "horrível pra caralho",
+    "muito ruim essa porra",
+    "odiei essa merda",
+    "isso tá uma bosta",
+    "que coisa horrível cara",
+    "péssimo pra caramba",
 
     # neutros
     "ok", "normal", "mais ou menos", "tanto faz",
-    "não sei", "é aceitável", "regular", "mediano"
+    "não sei", "pode ser", "é aceitável",
+    "nada demais", "regular", "mediano"
 ]
 
 rotulos = (
-    ["positivo"] * 10 +
-    ["negativo"] * 10 +
-    ["neutro"] * 8
+    ["positivo"] * 27 +
+    ["negativo"] * 33 +
+    ["neutro"] * 10
 )
 
 # ----------------------------
 # 2. TREINO
 # ----------------------------
+# vetor melhor (pega combinações de palavras)
 vectorizer = TfidfVectorizer(ngram_range=(1,2))
 X = vectorizer.fit_transform(frases)
 
 modelo = SVC(kernel='linear', probability=True)
 modelo.fit(X, rotulos)
 
+# acurácia real
 scores = cross_val_score(modelo, X, rotulos, cv=5)
 acuracia = np.mean(scores)
 
@@ -50,12 +70,25 @@ def normalizar_texto(texto):
 
     substituicoes = {
         r"\bvc\b": "você",
+        r"\bvcs\b": "vocês",
+        r"\btb\b": "também",
+        r"\btbm\b": "também",
+        r"\bpq\b": "porque",
+        r"\bq\b": "que",
         r"\bmt\b": "muito",
-        r"\blixo\b": "ruim",
+        r"\bmto\b": "muito",
+        r"\btop\b": "muito bom",
+        r"\bkkk+\b": "feliz",
+        r"\brs+\b": "feliz",
+        r"\baff\b": "ruim",
+        r"\bmds\b": "surpresa",
+        r"\bn\b": "não",
+        r"\bnao\b": "não",
         r"\bmerda\b": "ruim",
         r"\bbosta\b": "ruim",
         r"\bporra\b": "ruim",
-        r"\bcaralho\b": "intensidade"
+        r"\bcaralho\b": "intensidade",
+        r"\blixo\b": "ruim"
     }
 
     for padrao, correto in substituicoes.items():
